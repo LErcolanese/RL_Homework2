@@ -51,7 +51,7 @@ public:
                         KDL::Rotation &_R_base_end,
                         double alpha,
                         double eqradius);
-    void trapezoidal_vel(double t_, double tc_, double &s, double &s_dot, double &s_ddot);
+    void trapezoidal_vel(double t_, double tc_, double tf_, double &s, double &s_dot, double &s_ddot);
     void cubic_polynomial(double t_, double tf_, double& s, double& s_dot, double& s_ddot);
 
     KDL::Trajectory* getTrajectory();

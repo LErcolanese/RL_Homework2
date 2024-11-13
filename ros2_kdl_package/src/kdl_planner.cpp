@@ -92,9 +92,10 @@ void KDLPlanner::createCircPath(KDL::Frame &_F_start,
 }
 
 void KDLPlanner::trapezoidal_vel(double t_, double tc_, double tf_, double &s, double &s_dot, double &s_ddot) {
-sc_ddot=2/(tf_*tc_-std::pow(t_c,2));
+  double sc_ddot;
+  sc_ddot=2/(tf_*tc_-std::pow(tc_,2));
 
-  if(0 <= t_ <= tc_)
+  if(0 <= t_ && t_<= tc_)
   {
     s = 0.5*sc_ddot*std::pow(t_,2);
     s_dot = sc_ddot*t_;
@@ -104,7 +105,7 @@ sc_ddot=2/(tf_*tc_-std::pow(t_c,2));
   {
     s =   + sc_ddot*tc_*(t_-tc_/2);
     s_dot = sc_ddot*tc_;
-    s_ddot = Eigen::Vector3d::Zero();
+    s_ddot = 0;
   }
   else if(t_ <= tf_)
   {
@@ -120,6 +121,8 @@ sc_ddot=2/(tf_*tc_-std::pow(t_c,2));
 
 // Cubic polynomial function
 void KDLPlanner::cubic_polynomial(double t_, double tf_, double& s, double& s_dot, double& s_ddot) {
+    double s0,sf,v0,vf,a0,a1,a2,a3;
+    
     //initialize s0,sf,v0,vf
     s0=0;
     sf=1;
@@ -148,7 +151,7 @@ KDL::Trajectory* KDLPlanner::getTrajectory()
 	return traject_;
 }
 
-trajectory_point KDLPlanner::compute_trajectory(double time, TrajectoryType path_type, TimeLaw time_law, Eigen::Vector3d init_pos)
+trajectory_point KDLPlanner::compute_trajectory(double time)
 {
   /* trapezoidal velocity profile with accDuration_ acceleration time period and trajDuration_ total duration.
      time = current time
@@ -180,6 +183,7 @@ trajectory_point KDLPlanner::compute_trajectory(double time, TrajectoryType path
   //   traj.acc = -ddot_traj_c;
   // }
     double s, s_dot, s_ddot;
+     trajectory_point traj;
 
       // Selezione del tipo di legge temporale
     if (time_law == CUBIC) {
@@ -192,9 +196,9 @@ trajectory_point KDLPlanner::compute_trajectory(double time, TrajectoryType path
     // Selezione del tipo di percorso
     if (path_type == CIRCULAR) {
         // Applica la posizione curvilinea al percorso circolare
-        traj.pos(1)=init_pos(1);
-        traj.pos(2)=init_pos(2)-trajRadius_*cos(2*M_PI*s);
-        traj.pos(3)=init_pos(3)-trajRadius_*sin(2*M_PI*s);
+        traj.pos(1)=trajInit_(1);
+        traj.pos(2)=trajInit_(2)-trajRadius_*cos(2*M_PI*s);
+        traj.pos(3)=trajInit_(3)-trajRadius_*sin(2*M_PI*s);
 
         traj.vel(1)=0;
         traj.vel(2)=trajRadius_*sin(2*M_PI*s)*2*M_PI*s_dot;
